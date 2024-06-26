@@ -1,24 +1,25 @@
-import logo from './logo.svg';
+import React, {Suspense} from 'react'
+import {BrowserRouter as Router} from "react-router-dom";
 import './App.css';
+import Loader from './utils/loader';
+import {ErrorBoundary} from 'react-error-boundary';
+import ErrorFallback from './utils/error-fallback';
+import MainLayout from './components/layouts/main-layout';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Loader/>
+        <ErrorBoundary FallbackComponent={ErrorFallback}
+                       onReset={() => {
+                       }}>
+          <Suspense fallback={<Loader load={true}/>}>
+            <MainLayout />
+          </Suspense>
+        </ErrorBoundary>
+      </div>
+    </Router>
   );
 }
 
