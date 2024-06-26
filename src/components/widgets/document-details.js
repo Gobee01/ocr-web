@@ -7,7 +7,7 @@ const DocumentDetails = () => {
   };
 
   return (
-    <div className="sa-popup-content">
+    <div className="extract-popup-content">
       <div className="col-md-6">
         <div className="m-b-16">
           <label className='label'>Document Name</label>

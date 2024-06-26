@@ -81,7 +81,7 @@ const ContentSwitcher = ({ activeTab }) => {
 
   if (activeTab === 'keyValues') {
     return (
-      <div className="sa-popup-content">
+      <div className="extract-popup-content">
         {Object.entries(formData).map(([label, value], index) => (
           <div className="col-md-6" key={index}>
             <div className="m-b-16">
@@ -106,11 +106,11 @@ const ContentSwitcher = ({ activeTab }) => {
                     onChange={(event) => handleHeaderChange(event, index)}
                     className="table-input table-input-bold"
                   />
-                  <div className="sa-popup-close-icon" onClick={() => addColumn(index)}>
-                    <FeatherIcon className="sa-modal-close-icon" icon="plus" />
+                  <div className="table-icon" onClick={() => addColumn(index)}>
+                    <FeatherIcon className="table-feather-icon" icon="plus" />
                   </div>
-                  <div className="sa-popup-close-icon" onClick={() => deleteColumn(index)}>
-                    <FeatherIcon className="sa-modal-close-icon" icon="trash" />
+                  <div className="table-icon" onClick={() => deleteColumn(index)}>
+                    <FeatherIcon className="table-feather-icon" icon="trash" />
                   </div>
                 </th>
               ))}
@@ -131,11 +131,11 @@ const ContentSwitcher = ({ activeTab }) => {
                   </td>
                 ))}
                 <td className="content-table-data">
-                  <div className="sa-popup-close-icon" onClick={() => addRow(rowIndex)}>
-                    <FeatherIcon className="sa-modal-close-icon" icon="plus" />
+                  <div className="table-icon" onClick={() => addRow(rowIndex)}>
+                    <FeatherIcon className="table-feather-icon" icon="plus" />
                   </div>
-                  <div className="sa-popup-close-icon" onClick={() => deleteRow(rowIndex)}>
-                    <FeatherIcon className="sa-modal-close-icon" icon="trash" />
+                  <div className="table-icon" onClick={() => deleteRow(rowIndex)}>
+                    <FeatherIcon className="table-feather-icon" icon="trash" />
                   </div>
                 </td>
               </tr>
