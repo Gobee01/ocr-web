@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import FeatherIcon from "feather-icons-react";
+import Preview from "../widgets/preview";
 
 const UploadDocument = () => {
   const [userList, setUserList] = useState([
@@ -15,6 +16,9 @@ const UploadDocument = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const pdfUrl = "/uploaded-files/FORM-MAQ-012.pdf";
 
   useEffect(() => {
     const filtered = userList.filter(user =>
@@ -100,8 +104,10 @@ const UploadDocument = () => {
                 <td className={'sa-table-data'}>{user.document}</td>
                 <td className={'sa-table-data'}>{user.date}</td>
                 <td className={'sa-table-data'}>
-                 <div className="content-wrapper">
-                 <FeatherIcon icon="file" className="pdf-icon"/>
+                 <div className="content-wrapper" onClick={() => {
+                  setShowPreview(true);
+                 }}>
+                  <FeatherIcon icon="file" className="pdf-icon"/>
                  </div>
                 </td>
                 <td className={'sa-table-data'}>
@@ -127,6 +133,11 @@ const UploadDocument = () => {
         </div>
        </div>
       </Container>
+
+      {showPreview && <Preview onClose={() => {
+            setShowPreview(false)
+          }} pdfUrl={pdfUrl} />}
+
     </div>
   );
 };

@@ -562,6 +562,29 @@ input[type="checkbox"] {
   width: 18px !important;
 }
 
+.pdf-modal-box-style {
+  background: var(--white) 0% 0% no-repeat padding-box !important;
+  box-shadow: 0px 0px 8px #0000000A;
+  border: 0.23999999463558197px solid #EDEDED;
+  opacity: 1;
+  padding-bottom: 16px;
+  max-width: 1000px;
+  max-height: calc(100vh - 100px);
+  margin: 0px auto;
+  overflow: auto;
+}
+
+.pdf-popup-header {
+  margin-bottom: 16px;
+  padding-top: 16px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  box-shadow: 0px 4px 30px #00000008;
+  background: var(--white) 0% 0% no-repeat padding-box;
+  opacity: 1;
+  height: 44px;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
