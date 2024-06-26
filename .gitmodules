@@ -1,0 +1,4 @@
+[submodule "src/ui_shared"]
+	path = src/ui_shared
+	url = https://bitbucket.org/senzagromobile/ui_shared
+	ignore =all

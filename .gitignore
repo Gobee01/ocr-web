@@ -11,6 +11,9 @@
 # production
 /build
 
+# sub module
+src/shared
+
 # misc
 .DS_Store
 .env.local
