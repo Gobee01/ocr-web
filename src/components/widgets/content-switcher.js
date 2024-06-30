@@ -5,7 +5,7 @@ const ContentSwitcher = ({ activeTab }) => {
   const [formDataState, setFormDataState] = useState({});
   const [tableData, setTableData] = useState([
     { column1: "Data 1", column2: "Data 2" },
-    { column1: "Data 3", column2: "Data 4" }
+    { column1: "Data 3", column2: "Data 4", column3: "Data 5" }
   ]);
 
   const formData = { label1: "value 1", label2: "value 2", label3: "value 3", label4: "value 4", label5: "value 5" };

@@ -20,6 +20,11 @@
   pointer-events: none;
 }
 
+.Toastify__toast--success {
+  background-color: #22C687 !important;
+  background: #07bc0c;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -258,6 +263,10 @@
   height: 18px;
 }
 
+.upload-icon {
+  margin-right: 6px;
+}
+
 .delete-text {
   font-size: 16px; 
   margin-top: 3px;
@@ -410,7 +419,7 @@
 }
 
 .calc-height {
-  height: calc(100vh - 195px);
+  height: calc(100vh - 170px);
 }
 
 .delete-button {
@@ -583,6 +592,19 @@ input[type="checkbox"] {
   background: var(--white) 0% 0% no-repeat padding-box;
   opacity: 1;
   height: 44px;
+}
+
+.pull-right {
+  margin-bottom: 16px !important;
+  float: right !important;
+}
+
+img, svg {
+  vertical-align: middle;
+}
+
+button {
+  cursor: pointer;
 }
 
 @keyframes App-logo-spin {

@@ -14,7 +14,7 @@ function Navbar() {
 
     function renderItems() {
         return [
-            { name: 'Uploaded Documents', url: '/upload' },
+            { name: 'Documents', url: '/upload' },
             { name: 'Extracted Documents', url: '/extract' }
             // Add more items as needed
         ].map((item, index) => (

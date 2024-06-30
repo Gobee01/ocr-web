@@ -8,6 +8,9 @@
 # testing
 /coverage
 
+# output
+/public/uploaded-files
+
 # production
 /build
 
