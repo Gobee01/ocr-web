@@ -4,6 +4,8 @@ import FeatherIcon from "feather-icons-react";
 import Preview from "../widgets/preview";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 import {useDispatch} from "react-redux";
 import { toggleLoader } from "../../actions/setting";
 import { EXTRACTION_STATUS } from "../../utils/enum";
@@ -17,7 +19,7 @@ const UploadDocument = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState("/uploaded-files/FORM-MAQ-012.pdf");
+  const [pdfUrl, setPdfUrl] = useState("");
 
   const dispatch = useDispatch();
 
@@ -39,14 +41,14 @@ const UploadDocument = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setDocList(data.content.content); 
-
+        setDocList(data.content.content);
       } else {
         toast.error("Failed to fetch documents.");
       }
-      dispatch(toggleLoader(false));
     } catch (error) {
       console.error("Error fetching document page:", error);
+      toast.error("Error fetching document page.");
+    } finally {
       dispatch(toggleLoader(false));
     }
   };
@@ -55,12 +57,12 @@ const UploadDocument = () => {
     fetchDocumentPage();
   }, [refresh]);
 
-  const handleCheckboxChange = (documentId) => {
-    const currentIndex = selectedRows.indexOf(documentId);
+  const handleCheckboxChange = (id) => {
+    const currentIndex = selectedRows.indexOf(id);
     const newSelected = [...selectedRows];
 
     if (currentIndex === -1) {
-      newSelected.push(documentId);
+      newSelected.push(id);
     } else {
       newSelected.splice(currentIndex, 1);
     }
@@ -68,10 +70,45 @@ const UploadDocument = () => {
     setSelectedRows(newSelected);
   };
 
-  const handleDelete = () => {
-    const updatedDocList = docList.filter(user =>!selectedRows.includes(user.documentId));
-    setDocList(updatedDocList);
-    setSelectedRows([]);
+  const handleDelete = async () => {
+    dispatch(toggleLoader(true));
+    try {
+      await Promise.all(selectedRows.map(async (id) => {
+        const response = await fetch(`${process.env.REACT_APP_HOST}/api/document/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to delete document with ID: ${id}`);
+        }
+      }));
+      setSelectedRows([]);
+      setRefresh(!refresh)
+      toast.success("Documents deleted successfully.");
+
+    } catch (error) {
+      console.error("Error deleting documents:", error);
+      toast.error("Failed to delete some documents.");
+    } finally {
+      dispatch(toggleLoader(false));
+    }
+  };
+
+  const handleDeleteClick = () => {
+    confirmAlert({
+      title: 'Confirmation to delete',
+      message: 'Are you sure you want to delete the selected documents?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: handleDelete
+        },
+        {
+          label: 'No',
+          onClick: () => {}
+        }
+      ]
+    });
   };
 
   const handleUpload = async () => {
@@ -105,25 +142,24 @@ const UploadDocument = () => {
         method: "POST",
         body: formData,
       });
-  
+
       if (response.ok) {
         const data = await response.json();
-        let filePath = data.filePath.replace(/\\/g, '/');  
-  
+        let filePath = data.filePath.replace(/\\/g, '/');
+
         const documentData = {
           name: data.fileName,
           pdfPath: filePath,
           status: EXTRACTION_STATUS.IN_QUEUE,
         };
         await handleAddDocument(documentData);
-        
       } else {
         toast.error("File upload failed.");
       }
-      dispatch(toggleLoader(false));
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error("File upload failed.");
+    } finally {
       dispatch(toggleLoader(false));
     }
   };
@@ -138,19 +174,18 @@ const UploadDocument = () => {
         },
         body: JSON.stringify(documentData),
       });
-  
+
       if (response.ok) {
         const data = await response.json();
-        setRefresh(!refresh)
+        setRefresh(!refresh);
         toast.success("Document added successfully.");
-
       } else {
         toast.error("Failed to add document.");
       }
-      dispatch(toggleLoader(false));
     } catch (error) {
       console.error("Error adding document:", error);
       toast.error("Failed to add document.");
+    } finally {
       dispatch(toggleLoader(false));
     }
   };
@@ -205,7 +240,7 @@ const UploadDocument = () => {
               <th className={"sa-table-head-sticky"}>Preview</th>
               <th className={"sa-table-head-sticky"}>Status</th>
               <th className={"sa-table-head-sticky"}>
-                <button disabled={selectedRows.length === 0} onClick={handleDelete} 
+                <button disabled={selectedRows.length === 0} onClick={handleDeleteClick} 
                         className={`delete-button ${selectedRows.length > 0? '' : 'disabled'}`}>
                   <div className="delete-button-content">
                     <FeatherIcon icon="trash" className={"delete-icon"} /> 
@@ -241,8 +276,8 @@ const UploadDocument = () => {
                 <td className={'sa-table-data'}>
                     <input
                       type="checkbox"
-                      checked={selectedRows.includes(user.documentId)}
-                      onChange={() => handleCheckboxChange(user.documentId)}
+                      checked={selectedRows.includes(user.id)}
+                      onChange={() => handleCheckboxChange(user.id)}
                     />
                 </td>
               </tr>

@@ -607,6 +607,10 @@ button {
   cursor: pointer;
 }
 
+.confirmation-z-index {
+  z-index: 9999;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
