@@ -6,7 +6,7 @@ import DocumentDetails from '../widgets/document-details';
 
 const ExtractionPage = () => {
   const [activeTab, setActiveTab] = useState('keyValues');
-  const pdfUrl = "/uploaded-files/FORM-MAQ-012.pdf"; // Replace with your PDF URL
+  const pdfUrl = "/uploaded-files/FORM-DIS-011.pdf"; // Replace with your PDF URL
 
   return (
     <div style={{display: 'flex', height: '90vh', marginTop: '20px'}}>
