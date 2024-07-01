@@ -2,22 +2,50 @@ import React, { useState } from 'react';
 import FeatherIcon from 'feather-icons-react';
 
 const ContentSwitcher = ({ activeTab }) => {
-  const [formDataState, setFormDataState] = useState({});
-  const [tableData, setTableData] = useState([
-    { column1: "Data 1", column2: "Data 2" },
-    { column1: "Data 3", column2: "Data 4", column3: "Data 5" }
+  const [formLabels, setFormLabels] = useState([
+    ["000226", "Hospital Code"],
+    ["RODORIA", "Printed By:"],
+    ["Due Date", "01/18/2022"],
+    ["11/15/2021", "Date Admitted"],
+    ["Printed Date:", "12/20/2021"]
   ]);
 
-  const formData = { label1: "value 1", label2: "value 2", label3: "value 3", label4: "value 4", label5: "value 5" };
+  const [tableData, setTableData] = useState([
+    {
+      "Amount": "11,713.25",
+      "Date": "11/15/2021 to 11/16/2021",
+      "Doctor": "GALANG, GERARDO, M.D.",
+      "Pro. Fees": "18,000.00"
+    },
+    {
+      "Amount": NaN,
+      "Date": NaN,
+      "Doctor": "GUTIERREZ, FELIX EMMANUEL, S M.D.",
+      "Name of Patient": NaN,
+    },
+    {
+      "Amount": "11,713.25",
+      "Date": "TOTAL HOSPITAL CLAIMS",
+      "Doctor": "TOTAL PF CLAIMS",
+      "Name of Patient": "TOTAL HOSPITAL CLAIMS",
+      "Pro. Fees": "27,000.00"
+    }
+  ]);
 
-  const tableHeaders = Array.from(new Set(tableData.reduce((acc, obj) => [...acc, ...Object.keys(obj)], []))).map(header => header);
+  const tableHeaders = Array.from(new Set(tableData.reduce((acc, obj) => [...acc, ...Object.keys(obj)], [])));
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormDataState(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+  const handleLabelChange = (event, index) => {
+    const newLabel = event.target.value;
+    const newFormLabels = [...formLabels];
+    newFormLabels[index][0] = newLabel;
+    setFormLabels(newFormLabels);
+  };
+
+  const handleValueChange = (event, index) => {
+    const newValue = event.target.value;
+    const newFormLabels = [...formLabels];
+    newFormLabels[index][1] = newValue;
+    setFormLabels(newFormLabels);
   };
 
   const handleTableChange = (event, rowIndex, columnName) => {
@@ -82,11 +110,23 @@ const ContentSwitcher = ({ activeTab }) => {
   if (activeTab === 'keyValues') {
     return (
       <div className="extract-popup-content">
-        {Object.entries(formData).map(([label, value], index) => (
+        {formLabels.map(([label, value], index) => (
           <div className="col-md-6" key={index}>
             <div className="m-b-16">
-              <label className='label'>{label}</label>
-              <input onChange={handleChange} value={formDataState[label] || value} type="text" className="form-control" name={label} />
+              <input
+                onChange={(event) => handleLabelChange(event, index)}
+                value={label}
+                type="text"
+                className="label-input"
+                name={`label-${index}`}
+              />
+              <input
+                onChange={(event) => handleValueChange(event, index)}
+                value={value}
+                type="text"
+                className="form-control"
+                name={`value-${index}`}
+              />
             </div>
           </div>
         ))}
