@@ -14,11 +14,10 @@ function Navbar() {
 
     function renderItems() {
         return [
-            { name: 'Documents', url: '/upload' },
-            { name: 'Extracted Documents', url: '/extract' }
+            { name: 'Documents', url: '/upload' }
             // Add more items as needed
         ].map((item, index) => (
-            <NavLink key={index} to={item.url} activeClassName="nav-active" className="menu-item">
+            <NavLink key={index} to={item.url} activeClassName="navbar-active" className="menu-item">
                 {item.name}
             </NavLink> 
         ));

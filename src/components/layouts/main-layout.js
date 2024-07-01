@@ -11,7 +11,7 @@ const MainLayout = () => {
       <AppHeader />
         <Switch>
           <Route path="/upload" component={UploadDocument} />
-          <Route path="/extract" component={ExtractDocument} />
+          <Route path="/extract/:documentId" component={ExtractDocument} />
           {/* Default route can be removed if you always want to redirect to /upload or /extract */}
           <Route path="/" component={UploadDocument} />
         </Switch>

@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { useDispatch } from "react-redux";
+import { useHistory } from 'react-router-dom';
 import { toggleLoader } from "../../actions/setting";
 import { EXTRACTION_STATUS } from "../../utils/enum";
 import { formatDisplayEnumValue, extractFilePath, formatDateTime } from "../../utils/utils";
@@ -26,6 +27,11 @@ const UploadDocument = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10); // Items per page state
 
   const dispatch = useDispatch();
+  const history = useHistory();
+
+  const handleRowClick = (document) => {
+    history.push(`/extract/${document.id}`);
+  };
 
   useEffect(() => {
     const filtered = docList.filter(user =>
@@ -259,33 +265,33 @@ const UploadDocument = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredList.map((user, index) => (
-                  <tr key={index} className="sa-table-row">
-                    <td className={'sa-table-data'}>{user.documentId}</td>
-                    <td className={'sa-table-data'}>{user.name}</td>
-                    <td className={'sa-table-data'}>{formatDateTime(user.uploadedDate)}</td>
+                {filteredList.map((doc, index) => (
+                  <tr key={index} className="sa-table-row" onClick={() => handleRowClick(doc)}>
+                    <td className={'sa-table-data'}>{doc.documentId}</td>
+                    <td className={'sa-table-data'}>{doc.name}</td>
+                    <td className={'sa-table-data'}>{formatDateTime(doc.uploadedDate)}</td>
                     <td className={'sa-table-data'}>
                       <div className="content-wrapper" onClick={() => {
                         setShowPreview(true);
-                        setPdfUrl(extractFilePath(user.pdfPath))
+                        setPdfUrl(extractFilePath(doc.pdfPath))
                       }}>
                         <FeatherIcon icon="file" className="pdf-icon" />
                       </div>
                     </td>
                     <td className={'sa-table-data'}>
                       <div className="content-wrapper">
-                        {user.status === EXTRACTION_STATUS.EXTRACTION_IN_PROGRESS && <div className="extraction-progress">{formatDisplayEnumValue(user.status)}</div>}
-                        {user.status === EXTRACTION_STATUS.EXTRACTION_FAILED && <div className="extraction-failed">{formatDisplayEnumValue(user.status)}</div>}
-                        {user.status === EXTRACTION_STATUS.VALIDATION_COMPLETED && <div className="validation-completed">{formatDisplayEnumValue(user.status)}</div>}
-                        {user.status === EXTRACTION_STATUS.VALIDATION_PENDING && <div className="validation-pending">{formatDisplayEnumValue(user.status)}</div>}
-                        {user.status === EXTRACTION_STATUS.IN_QUEUE && <div className="queue">{formatDisplayEnumValue(user.status)}</div>}
+                        {doc.status === EXTRACTION_STATUS.EXTRACTION_IN_PROGRESS && <div className="extraction-progress">{formatDisplayEnumValue(doc.status)}</div>}
+                        {doc.status === EXTRACTION_STATUS.EXTRACTION_FAILED && <div className="extraction-failed">{formatDisplayEnumValue(doc.status)}</div>}
+                        {doc.status === EXTRACTION_STATUS.VALIDATION_COMPLETED && <div className="validation-completed">{formatDisplayEnumValue(doc.status)}</div>}
+                        {doc.status === EXTRACTION_STATUS.VALIDATION_PENDING && <div className="validation-pending">{formatDisplayEnumValue(doc.status)}</div>}
+                        {doc.status === EXTRACTION_STATUS.IN_QUEUE && <div className="queue">{formatDisplayEnumValue(doc.status)}</div>}
                       </div>
                     </td>
                     <td className={'sa-table-data'}>
                       <input
                         type="checkbox"
-                        checked={selectedRows.includes(user.id)}
-                        onChange={() => handleCheckboxChange(user.id)}
+                        checked={selectedRows.includes(doc.id)}
+                        onChange={() => handleCheckboxChange(doc.id)}
                       />
                     </td>
                   </tr>
