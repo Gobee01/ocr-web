@@ -17,7 +17,7 @@ const DocumentDetails = () => {
       <div className="col-md-6">
         <div className="m-b-16">
           <label className='label'>Number of Pages</label>
-          <input onChange={handleChange} type="number" className="form-control" name="numberOfPages" />
+          <input disabled type="number" className="form-control" name="numberOfPages" />
         </div>
       </div>
     </div>

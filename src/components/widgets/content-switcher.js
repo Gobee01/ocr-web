@@ -138,6 +138,7 @@ const ContentSwitcher = ({ activeTab }) => {
         <table className="content-table">
           <thead>
             <tr>
+            <th className="content-table-head-sticky"></th>
               {tableHeaders.map((header, index) => (
                 <th key={index} className="content-table-head-sticky">
                   <input
@@ -154,12 +155,19 @@ const ContentSwitcher = ({ activeTab }) => {
                   </div>
                 </th>
               ))}
-              <th className="content-table-head-sticky"></th>
             </tr>
           </thead>
           <tbody>
             {tableData.map((row, rowIndex) => (
               <tr key={rowIndex} className="content-table-row">
+                <td className="content-table-data">
+                  <div className="table-icon" onClick={() => addRow(rowIndex)}>
+                    <FeatherIcon className="table-feather-icon" icon="plus" />
+                  </div>
+                  <div className="table-icon" onClick={() => deleteRow(rowIndex)}>
+                    <FeatherIcon className="table-feather-icon" icon="trash" />
+                  </div>
+                </td>
                 {tableHeaders.map((header, cellIndex) => (
                   <td key={cellIndex} className="content-table-data">
                     <input
@@ -170,14 +178,6 @@ const ContentSwitcher = ({ activeTab }) => {
                     />
                   </td>
                 ))}
-                <td className="content-table-data">
-                  <div className="table-icon" onClick={() => addRow(rowIndex)}>
-                    <FeatherIcon className="table-feather-icon" icon="plus" />
-                  </div>
-                  <div className="table-icon" onClick={() => deleteRow(rowIndex)}>
-                    <FeatherIcon className="table-feather-icon" icon="trash" />
-                  </div>
-                </td>
               </tr>
             ))}
           </tbody>
