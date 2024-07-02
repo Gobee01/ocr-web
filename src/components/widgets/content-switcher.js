@@ -1,36 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FeatherIcon from 'feather-icons-react';
 
-const ContentSwitcher = ({ activeTab }) => {
-  const [formLabels, setFormLabels] = useState([
-    ["000226", "Hospital Code"],
-    ["RODORIA", "Printed By:"],
-    ["Due Date", "01/18/2022"],
-    ["11/15/2021", "Date Admitted"],
-    ["Printed Date:", "12/20/2021"]
-  ]);
+const ContentSwitcher = ({ activeTab, tableExtraction, setTableExtraction, keyValues, setKeyValues, selectedPage }) => {
+  // State initialization with props
+  const [formLabels, setFormLabels] = useState(keyValues[`page_${selectedPage}`] || []);
+  const [tableData, setTableData] = useState(tableExtraction[`page_${selectedPage}`]?.table_1 || [{"empty column": ""}]);
 
-  const [tableData, setTableData] = useState([
-    {
-      "Amount": "11,713.25",
-      "Date": "11/15/2021 to 11/16/2021",
-      "Doctor": "GALANG, GERARDO, M.D.",
-      "Pro. Fees": "18,000.00"
-    },
-    {
-      "Amount": NaN,
-      "Date": NaN,
-      "Doctor": "GUTIERREZ, FELIX EMMANUEL, S M.D.",
-      "Name of Patient": NaN,
-    },
-    {
-      "Amount": "11,713.25",
-      "Date": "TOTAL HOSPITAL CLAIMS",
-      "Doctor": "TOTAL PF CLAIMS",
-      "Name of Patient": "TOTAL HOSPITAL CLAIMS",
-      "Pro. Fees": "27,000.00"
-    }
-  ]);
+  useEffect(() => {
+    // Update local state when props change
+    setFormLabels(keyValues[`page_${selectedPage}`] || []);
+    setTableData(tableExtraction[`page_${selectedPage}`]?.table_1 || [{"empty column": ""}]);
+  }, [selectedPage, keyValues, tableExtraction]);
 
   const tableHeaders = Array.from(new Set(tableData.reduce((acc, obj) => [...acc, ...Object.keys(obj)], [])));
 
@@ -39,6 +19,10 @@ const ContentSwitcher = ({ activeTab }) => {
     const newFormLabels = [...formLabels];
     newFormLabels[index][0] = newLabel;
     setFormLabels(newFormLabels);
+    setKeyValues(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: newFormLabels
+    }));
   };
 
   const handleValueChange = (event, index) => {
@@ -46,6 +30,10 @@ const ContentSwitcher = ({ activeTab }) => {
     const newFormLabels = [...formLabels];
     newFormLabels[index][1] = newValue;
     setFormLabels(newFormLabels);
+    setKeyValues(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: newFormLabels
+    }));
   };
 
   const handleTableChange = (event, rowIndex, columnName) => {
@@ -53,6 +41,13 @@ const ContentSwitcher = ({ activeTab }) => {
     const newTableData = [...tableData];
     newTableData[rowIndex][columnName] = value;
     setTableData(newTableData);
+    setTableExtraction(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: {
+        ...prevState[`page_${selectedPage}`],
+        table_1: newTableData
+      }
+    }));
   };
 
   const handleHeaderChange = (event, index) => {
@@ -69,6 +64,13 @@ const ContentSwitcher = ({ activeTab }) => {
       return newRow;
     });
     setTableData(updatedTableData);
+    setTableExtraction(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: {
+        ...prevState[`page_${selectedPage}`],
+        table_1: updatedTableData
+      }
+    }));
   };
 
   const addRow = (index) => {
@@ -79,6 +81,13 @@ const ContentSwitcher = ({ activeTab }) => {
     const newData = [...tableData];
     newData.splice(index + 1, 0, newRow);
     setTableData(newData);
+    setTableExtraction(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: {
+        ...prevState[`page_${selectedPage}`],
+        table_1: newData
+      }
+    }));
   };
 
   const addColumn = (index) => {
@@ -91,10 +100,25 @@ const ContentSwitcher = ({ activeTab }) => {
       return newRow;
     });
     setTableData(updatedTableData);
+    setTableExtraction(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: {
+        ...prevState[`page_${selectedPage}`],
+        table_1: updatedTableData
+      }
+    }));
   };
 
   const deleteRow = (rowIndex) => {
-    setTableData(tableData.filter((_, index) => index !== rowIndex));
+    const newData = tableData.filter((_, index) => index !== rowIndex);
+    setTableData(newData);
+    setTableExtraction(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: {
+        ...prevState[`page_${selectedPage}`],
+        table_1: newData
+      }
+    }));
   };
 
   const deleteColumn = (columnIndex) => {
@@ -105,11 +129,18 @@ const ContentSwitcher = ({ activeTab }) => {
       return newRow;
     });
     setTableData(updatedTableData);
+    setTableExtraction(prevState => ({
+      ...prevState,
+      [`page_${selectedPage}`]: {
+        ...prevState[`page_${selectedPage}`],
+        table_1: updatedTableData
+      }
+    }));
   };
 
   if (activeTab === 'keyValues') {
     return (
-      <div className="extract-popup-content">
+      <div className="extract-popup-content key-values">
         {formLabels.map(([label, value], index) => (
           <div className="col-md-6" key={index}>
             <div className="m-b-16">
@@ -138,7 +169,7 @@ const ContentSwitcher = ({ activeTab }) => {
         <table className="content-table">
           <thead>
             <tr>
-            <th className="content-table-head-sticky"></th>
+              <th className="content-table-head-sticky"></th>
               {tableHeaders.map((header, index) => (
                 <th key={index} className="content-table-head-sticky">
                   <input

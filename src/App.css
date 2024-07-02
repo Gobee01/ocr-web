@@ -498,10 +498,15 @@ input[type="checkbox"] {
   box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.key-values {
+  overflow: auto;
+  height: 65%;
+}
+
 .col-md-6 {
   padding-right: 8px !important;
   padding-left: 8px !important;
-  width: 370px;
+  width: 362px;
 }
 
 .form-control {
