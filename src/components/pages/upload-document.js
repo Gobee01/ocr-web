@@ -289,7 +289,7 @@ const UploadDocument = () => {
                       </div>
                     </td>
                     <td className={'sa-table-data'}>
-                      <input
+                      <input onClick={(event) => event.stopPropagation()}
                         type="checkbox"
                         checked={selectedRows.includes(doc.id)}
                         onChange={() => handleCheckboxChange(doc.id)}
