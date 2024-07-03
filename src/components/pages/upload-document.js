@@ -182,7 +182,11 @@ const UploadDocument = () => {
   }, [triggerExtraction]);
 
   const handleRowClick = (document) => {
-    history.push(`/extract/${document.id}`);
+    if (document.status === EXTRACTION_STATUS.VALIDATION_PENDING || document.status === EXTRACTION_STATUS.VALIDATION_COMPLETED) {
+      history.push(`/extract/${document.id}`);
+    } else {
+      toast.error("Can't view the extraction details.")
+    }
   };
 
   const handleCheckboxChange = (id) => {
