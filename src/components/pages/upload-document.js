@@ -21,23 +21,22 @@ const UploadDocument = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [triggerExtraction, setTriggerExtraction] = useState(true);
   const [pdfUrl, setPdfUrl] = useState("");
-  const [currentPage, setCurrentPage] = useState(1); // Current page state
-  const [totalPages, setTotalPages] = useState(1); // Total pages state
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Items per page state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [tempDocData, setTempDocData] = useState(null);
+  const [extractionData, setExtractionData] = useState();
 
   const dispatch = useDispatch();
   const history = useHistory();
 
-  const handleRowClick = (document) => {
-    history.push(`/extract/${document.id}`);
-  };
-
   useEffect(() => {
-    const filtered = docList.filter(user =>
-      (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (statusFilter === "" || user.status === statusFilter)
+    const filtered = docList.filter(doc =>
+      (doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (statusFilter === "" || doc.status === statusFilter)
     );
     setFilteredList(filtered);
   }, [searchTerm, statusFilter, docList]);
@@ -52,7 +51,7 @@ const UploadDocument = () => {
       if (response.ok) {
         const data = await response.json();
         setDocList(data.content.content);
-        setTotalPages(data.content.totalPages); // Set the total pages from the API response
+        setTotalPages(data.content.totalPages);
       } else {
         toast.error("Failed to fetch documents.");
       }
@@ -64,9 +63,127 @@ const UploadDocument = () => {
     }
   };
 
+  const fetchAllDocuments = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/allDocuments`, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.content;
+      } else {
+        toast.error("Failed to fetch all documents.");
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching all documents:", error);
+      toast.error("Error fetching all documents.");
+      return [];
+    }
+  };
+
+  const updateDocumentStatus = async (document, status) => {
+    try {
+      const documentData = {
+        name: document.name,
+        pdfPath: document.pdfPath,
+        status: status,
+      };
+      
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/document/${document.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(documentData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update status for document ID: ${document.id}`);
+      } else {
+        const data = await response.json();
+        setTempDocData(data.content)
+      }
+    } catch (error) {
+      console.error(`Error updating status for document ID: ${document.id}`, error);
+      toast.error(`Failed to update status for document: ${document.name}`);
+    }
+  };
+
+  const processDocument = async (document) => {
+    try {
+      // Update status to EXTRACTION_IN_PROGRESS
+      await updateDocumentStatus(document, EXTRACTION_STATUS.EXTRACTION_IN_PROGRESS);
+
+      const response = await fetch(`http://134.209.231.0:82/process_pdf`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pdf_file_path: `/app/gen_OCR/${extractFilePath(document.pdfPath)}`,
+          _id: document.documentId.toString(),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setExtractionData(data.content)
+        await updateDocumentStatus(document, EXTRACTION_STATUS.VALIDATION_PENDING);
+
+      } else {
+        // Update status to EXTRACTION_FAILED
+        await updateDocumentStatus(document, EXTRACTION_STATUS.EXTRACTION_FAILED);
+      }
+    } catch (error) {
+      console.error("Error processing document:", error);
+      toast.error("Error processing document");
+      await updateDocumentStatus(document, EXTRACTION_STATUS.EXTRACTION_FAILED);
+    }
+  };
+
+  const processQueue = async () => {
+    const allDocuments = await fetchAllDocuments();
+    const queueDocuments = allDocuments.filter(doc => doc.status === EXTRACTION_STATUS.IN_QUEUE);
+
+    for (const document of queueDocuments) {
+      await processDocument(document);
+    }
+    setTriggerExtraction(false);
+  };
+
   useEffect(() => {
-    fetchDocumentPage(currentPage - 1); // Fetch documents for the current page
+    fetchDocumentPage(currentPage - 1);
   }, [refresh, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    if (!tempDocData || filteredList.length===0) {
+      return
+    }
+
+    const updatedList = filteredList.map(doc => {
+      if (doc.id === tempDocData.id) {
+        return tempDocData; 
+      }
+      return doc; 
+    });
+    setFilteredList(updatedList)
+    setTempDocData(null)
+
+  }, [filteredList, tempDocData]);
+
+  useEffect(() => {
+    if (!triggerExtraction) {
+      return
+    }
+
+    processQueue();
+  }, [triggerExtraction]);
+
+  const handleRowClick = (document) => {
+    history.push(`/extract/${document.id}`);
+  };
 
   const handleCheckboxChange = (id) => {
     const currentIndex = selectedRows.indexOf(id);
@@ -111,20 +228,20 @@ const UploadDocument = () => {
       buttons: [
         {
           label: 'Yes',
-          onClick: handleDelete
+          onClick: handleDelete,
         },
         {
           label: 'No',
-          onClick: () => {}
-        }
-      ]
+          onClick: () => {},
+        },
+      ],
     });
   };
 
   const handleUpload = async () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.pdf'; // Accept only PDF files
+    input.accept = '.pdf';
     input.onchange = async (event) => {
       const file = event.target.files[0];
       if (!file) {
@@ -134,14 +251,14 @@ const UploadDocument = () => {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         await uploadFile(formData);
       } catch (error) {
         console.error("Failed to upload file:", error);
       }
     };
-    
-    input.click(); 
+
+    input.click();
   };
 
   const uploadFile = async (formData) => {
@@ -179,14 +296,14 @@ const UploadDocument = () => {
       const response = await fetch(`${process.env.REACT_APP_HOST}/api/document`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(documentData),
       });
 
       if (response.ok) {
-        const data = await response.json();
         setRefresh(!refresh);
+        setTriggerExtraction(true);
         toast.success("Document added successfully.");
       } else {
         toast.error("Failed to add document.");
@@ -201,7 +318,7 @@ const UploadDocument = () => {
 
   const handlePerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
   return (
@@ -238,8 +355,7 @@ const UploadDocument = () => {
               onClick={handleUpload}
               className="sa-table-btn-secondary sa-table-float-right"
             >
-              <FeatherIcon
-                icon={"upload"} className={"delete-icon"} />
+              <FeatherIcon icon={"upload"} className={"delete-icon"} />
               <span className="delete-text">{"Upload"}</span>
             </button>
           </div>
@@ -272,9 +388,9 @@ const UploadDocument = () => {
                     <td className={'sa-table-data'}>{formatDateTime(doc.uploadedDate)}</td>
                     <td className={'sa-table-data'}>
                       <div className="content-wrapper" onClick={(event) => {
-                        event.stopPropagation(); 
+                        event.stopPropagation();
                         setShowPreview(true);
-                        setPdfUrl(`http://134.209.231.0/${extractFilePath(doc.pdfPath)}`)
+                        setPdfUrl(`http://134.209.231.0/${extractFilePath(doc.pdfPath)}`);
                       }}>
                         <FeatherIcon icon="file" className="pdf-icon" />
                       </div>
@@ -314,7 +430,6 @@ const UploadDocument = () => {
       </Container>
 
       {showPreview && <Preview onClose={() => setShowPreview(false)} pdfUrl={pdfUrl} />}
-
     </div>
   );
 };
