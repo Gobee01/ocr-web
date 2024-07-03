@@ -33,7 +33,7 @@ const ExtractionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setPdfUrl(extractFilePath(data.content.pdfPath))
+        setPdfUrl(`http://134.209.231.0/${extractFilePath(data.content.pdfPath)}`)
         setDocData(data.content)
       } else {
         toast.error("Failed to fetch data.");

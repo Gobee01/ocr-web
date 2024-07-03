@@ -22,7 +22,7 @@ export function toCapsFirst(name) {
 }
 
 export const extractFilePath = (fullPath) => {
-  const startIndex = fullPath.indexOf("/uploaded-files/");
+  const startIndex = fullPath.indexOf("uploaded-files/");
   if (startIndex !== -1) {
     return fullPath.substring(startIndex);
   }

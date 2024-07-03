@@ -147,7 +147,7 @@ const UploadDocument = () => {
   const uploadFile = async (formData) => {
     dispatch(toggleLoader(true));
     try {
-      const response = await fetch(`${process.env.REACT_APP_HOST}/api/upload`, {
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/uploadVM`, {
         method: "POST",
         body: formData,
       });
@@ -271,9 +271,10 @@ const UploadDocument = () => {
                     <td className={'sa-table-data'}>{doc.name}</td>
                     <td className={'sa-table-data'}>{formatDateTime(doc.uploadedDate)}</td>
                     <td className={'sa-table-data'}>
-                      <div className="content-wrapper" onClick={() => {
+                      <div className="content-wrapper" onClick={(event) => {
+                        event.stopPropagation(); 
                         setShowPreview(true);
-                        setPdfUrl(extractFilePath(doc.pdfPath))
+                        setPdfUrl(`http://134.209.231.0/${extractFilePath(doc.pdfPath)}`)
                       }}>
                         <FeatherIcon icon="file" className="pdf-icon" />
                       </div>
