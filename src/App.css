@@ -689,6 +689,10 @@ button {
   cursor: pointer !important;
 }
 
+.export-dropdown {
+  margin-right: 20px;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

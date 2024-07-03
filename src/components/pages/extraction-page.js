@@ -142,6 +142,121 @@ const ExtractionPage = () => {
     }
   };
 
+  const handleExport = (event) => {
+    const format = event.target.value;
+    // Implement export logic based on format (csv/json)
+    // You can use libraries like FileSaver.js to save files
+    switch (format) {
+      case 'csv_key_values':
+        exportAsCSV(keyValues, 'key_values.csv');
+        break;
+      case 'json_key_values':
+        exportAsJSON(keyValues, 'key_values.json');
+        break;
+      case 'csv_table':
+        exportAsCSV(tableExtraction, 'table_data.csv');
+        break;
+      case 'json_table':
+        exportAsJSON(tableExtraction, 'table_data.json');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const exportAsCSV = (data, fileName) => {
+    // Sample implementation using Blob and FileSaver.js for CSV export
+    const csvData = (fileName === 'key_values.csv') ? convertKeysToCSV(data) : convertTableToCSV(data);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, fileName);
+  };
+
+  const exportAsJSON = (data, fileName) => {
+    // Sample implementation using Blob and FileSaver.js for JSON export
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    saveAs(blob, fileName);
+  };
+
+  const convertTableToCSV = (data) => {
+    let csv = '';
+
+    // Iterate over each page in the data
+    Object.keys(data).forEach(page => {
+      const pageName = `Page ${page.replace('page_', '')}`;
+      const tables = data[page];
+
+      // Iterate over each table in the page
+      Object.keys(tables).forEach(tableName => {
+        const tableData = tables[tableName];
+
+        // Add table name as row in CSV
+        csv += `${pageName}\n${tableName}\n`;
+
+        // Determine columns from first object's keys
+        const columns = Object.keys(tableData[0]);
+
+        // Create header row with column names
+        csv += `${columns.join(',')}\n`;
+
+        // Iterate over each object in the table data
+        tableData.forEach(row => {
+          // Create array of values based on columns order
+          const values = columns.map(column => {
+            let value = row[column];
+            if (typeof value === 'string' && value.includes(',')) {
+              value = `"${value}"`; // Quote values containing commas
+            }
+            return value;
+          });
+
+          // Join values into CSV row
+          csv += `${values.join(',')}\n`;
+        });
+
+        // Add a blank line after each table
+        csv += '\n';
+      });
+
+      // Add a blank line after each page
+      csv += '\n';
+    });
+
+    return csv;
+  };
+
+  const convertKeysToCSV = (data) => {
+    let csv = '';
+
+    // Iterate over each page in the data
+    Object.keys(data).forEach(page => {
+      csv += `Page ${page.replace('page_', '')}\n`;
+  
+      // Iterate over each array of key-value pairs in the page
+      data[page].forEach(pair => {
+        const quotedPair = pair.map(value => {
+          if (typeof value === 'string' && value.includes(',')) {
+            // Quote the value if it contains commas
+            return `"${value}"`;
+          }
+          return value;
+        });
+        csv += `${quotedPair.join(',')}\n`;
+      });
+  
+      // Add a blank line after each page
+      csv += '\n';
+    });
+  
+    return csv;
+  };
+
+  const saveAs = (blob, fileName) => {
+    // Using FileSaver.js to save blob as file
+    const { saveAs } = require('file-saver');
+    saveAs(blob, fileName);
+  };
+
   return (
     <div>
       <button
@@ -194,7 +309,20 @@ const ExtractionPage = () => {
               ))}
             </select>
           </div>
-          <TabHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <TabHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div style={{ marginLeft: '10px' }}>
+              <div className="dropdown">
+                <select className='per-page-dropdown export-dropdown' onChange={handleExport}>
+                  <option value={""}>Export</option>
+                  <option value="csv_key_values">Export Key Values as CSV</option>
+                  <option value="json_key_values">Export Key Values as JSON</option>
+                  <option value="csv_table">Export Table as CSV</option>
+                  <option value="json_table">Export Table as JSON</option>
+                </select>
+              </div>
+            </div>
+          </div>
           <ContentSwitcher 
             activeTab={activeTab}
             tableExtraction={tableExtraction}
