@@ -677,7 +677,7 @@ button {
 }
 
 .per-page-dropdown {
-  margin-left: 4px !important;
+  margin-left: 6px !important;
   height: 28px !important;
   min-width: 94px !important;
   padding: 5px !important;
@@ -691,6 +691,21 @@ button {
 
 .export-dropdown {
   margin-right: 20px;
+}
+
+.refresh-button {
+  background: none !important;
+  border: none !important;
+  padding: 0;
+  cursor: pointer;
+  outline: inherit;
+  margin-left: 10px !important;
+}
+
+.refresh-icon {
+  color: #007bff; /* Customize the color as needed */
+  width: 16px;
+  height: 16px;
 }
 
 @keyframes App-logo-spin {

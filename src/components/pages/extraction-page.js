@@ -84,11 +84,14 @@ const ExtractionPage = () => {
   }, [docData]);
 
   const calculateNumPages = (tableExtraction, keyValues) => {
-    const tablePages = Object.keys(tableExtraction).map(page => parseInt(page.replace('page_', '')));
-    const keyPages = Object.keys(keyValues).map(page => parseInt(page.replace('page_', '')));
+    const getPageNumbers = obj => Object.keys(obj).map(page => parseInt(page.replace('page_', ''), 10));
+    const tablePages = tableExtraction && Object.keys(tableExtraction).length > 0 ? getPageNumbers(tableExtraction) : [];
+    const keyPages = keyValues && Object.keys(keyValues).length > 0 ? getPageNumbers(keyValues) : [];
+    
     const allPages = [...tablePages, ...keyPages];
-    const maxPage = Math.max(...allPages, 1); // Default to 1 if no pages found
+    const maxPage = allPages.length > 0 ? Math.max(...allPages) : 1; // Default to 1 if no pages found
     setNumPages(maxPage);
+  
     if (selectedPage > maxPage) {
       setSelectedPage(maxPage);
     }

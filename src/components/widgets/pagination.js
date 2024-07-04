@@ -1,6 +1,7 @@
 import React from 'react';
+import FeatherIcon from "feather-icons-react";
 
-const Pagination = ({ currentPage, totalPages, onPageChange, value, onChange }) => {
+const Pagination = ({ currentPage, totalPages, onPageChange, value, onChange, handleRefresh }) => {
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5; // Maximum number of visible page numbers
@@ -81,6 +82,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange, value, onChange }) 
             <option value={50}>50/pages</option>
             <option value={100}>100/pages</option>
         </select>
+        <button onClick={handleRefresh} className="refresh-button">
+          <FeatherIcon icon="refresh-cw" className="refresh-icon" />
+        </button>
       </div>
     </div>
   );

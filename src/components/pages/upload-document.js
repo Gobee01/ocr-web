@@ -12,6 +12,8 @@ import { toggleLoader } from "../../actions/setting";
 import { EXTRACTION_STATUS } from "../../utils/enum";
 import { formatDisplayEnumValue, extractFilePath, formatDateTime } from "../../utils/utils";
 import Pagination from "../widgets/pagination";
+import { Stomp } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const UploadDocument = () => {
   const [docList, setDocList] = useState([]);
@@ -26,7 +28,6 @@ const UploadDocument = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [tempDocData, setTempDocData] = useState(null);
-  const [extractionData, setExtractionData] = useState();
 
   const dispatch = useDispatch();
   const history = useHistory();
@@ -67,20 +68,47 @@ const UploadDocument = () => {
   }, [refresh, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    if (!tempDocData || filteredList.length===0) {
+    if (!tempDocData || filteredList.length === 0) {
       return
     }
 
     const updatedList = filteredList.map(doc => {
       if (doc.id === tempDocData.id) {
-        return tempDocData; 
+        return tempDocData;
       }
-      return doc; 
+      return doc;
     });
     setFilteredList(updatedList)
     setTempDocData(null)
 
   }, [filteredList, tempDocData]);
+
+  useEffect(() => {
+    const socket = new SockJS(`${process.env.REACT_APP_HOST}/ws`);
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+      stompClient.subscribe('/topic/extractionStatus', (message) => {
+        if (message.body) {
+          const extractionStatus = JSON.parse(message.body);
+
+          setTimeout(() => {
+            setRefresh((prev) => !prev);
+            if (extractionStatus.status === EXTRACTION_STATUS.VALIDATION_PENDING) {
+              toast.success('Extraction completed');
+            } else if (extractionStatus.status === EXTRACTION_STATUS.EXTRACTION_FAILED) {
+              toast.error('Extraction failed');
+            }
+          }, 5000); // 5 seconds delay
+          
+        }
+      });
+    });
+
+    return () => {
+      stompClient.disconnect();
+    };
+  }, []);
 
   const handleRowClick = (document) => {
     if (document.status === EXTRACTION_STATUS.VALIDATION_PENDING || document.status === EXTRACTION_STATUS.VALIDATION_COMPLETED) {
@@ -137,7 +165,7 @@ const UploadDocument = () => {
         },
         {
           label: 'No',
-          onClick: () => {},
+          onClick: () => { },
         },
       ],
     });
@@ -208,7 +236,6 @@ const UploadDocument = () => {
 
       if (response.ok) {
         setRefresh(!refresh);
-        // setTriggerExtraction(true);
         toast.success("Document added successfully.");
       } else {
         toast.error("Failed to add document.");
@@ -224,6 +251,10 @@ const UploadDocument = () => {
   const handlePerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
+  };
+
+  const handleRefresh = () => {
+    setRefresh(!refresh);
   };
 
   return (
@@ -329,6 +360,7 @@ const UploadDocument = () => {
               onPageChange={setCurrentPage}
               value={itemsPerPage}
               onChange={handlePerPageChange}
+              handleRefresh={handleRefresh}
             />
           </div>
         </div>
