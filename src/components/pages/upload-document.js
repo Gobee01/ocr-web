@@ -21,7 +21,6 @@ const UploadDocument = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [triggerExtraction, setTriggerExtraction] = useState(true);
   const [pdfUrl, setPdfUrl] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -63,96 +62,6 @@ const UploadDocument = () => {
     }
   };
 
-  const fetchAllDocuments = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_HOST}/api/allDocuments`, {
-        method: "GET",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.content;
-      } else {
-        toast.error("Failed to fetch all documents.");
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching all documents:", error);
-      toast.error("Error fetching all documents.");
-      return [];
-    }
-  };
-
-  const updateDocumentStatus = async (document, status) => {
-    try {
-      const documentData = {
-        name: document.name,
-        pdfPath: document.pdfPath,
-        status: status,
-      };
-      
-      const response = await fetch(`${process.env.REACT_APP_HOST}/api/document/${document.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(documentData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update status for document ID: ${document.id}`);
-      } else {
-        const data = await response.json();
-        setTempDocData(data.content)
-      }
-    } catch (error) {
-      console.error(`Error updating status for document ID: ${document.id}`, error);
-      toast.error(`Failed to update status for document: ${document.name}`);
-    }
-  };
-
-  const processDocument = async (document) => {
-    try {
-      // Update status to EXTRACTION_IN_PROGRESS
-      await updateDocumentStatus(document, EXTRACTION_STATUS.EXTRACTION_IN_PROGRESS);
-
-      const response = await fetch(`http://134.209.231.0:82/process_pdf`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pdf_file_path: `/app/gen_OCR/${extractFilePath(document.pdfPath)}`,
-          _id: document.documentId.toString(),
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setExtractionData(data.content)
-        await updateDocumentStatus(document, EXTRACTION_STATUS.VALIDATION_PENDING);
-
-      } else {
-        // Update status to EXTRACTION_FAILED
-        await updateDocumentStatus(document, EXTRACTION_STATUS.EXTRACTION_FAILED);
-      }
-    } catch (error) {
-      console.error("Error processing document:", error);
-      toast.error("Error processing document");
-      await updateDocumentStatus(document, EXTRACTION_STATUS.EXTRACTION_FAILED);
-    }
-  };
-
-  const processQueue = async () => {
-    const allDocuments = await fetchAllDocuments();
-    const queueDocuments = allDocuments.filter(doc => doc.status === EXTRACTION_STATUS.IN_QUEUE);
-
-    for (const document of queueDocuments) {
-      await processDocument(document);
-    }
-    setTriggerExtraction(false);
-  };
-
   useEffect(() => {
     fetchDocumentPage(currentPage - 1);
   }, [refresh, currentPage, itemsPerPage]);
@@ -172,14 +81,6 @@ const UploadDocument = () => {
     setTempDocData(null)
 
   }, [filteredList, tempDocData]);
-
-  useEffect(() => {
-    if (!triggerExtraction) {
-      return
-    }
-
-    processQueue();
-  }, [triggerExtraction]);
 
   const handleRowClick = (document) => {
     if (document.status === EXTRACTION_STATUS.VALIDATION_PENDING || document.status === EXTRACTION_STATUS.VALIDATION_COMPLETED) {
@@ -307,7 +208,7 @@ const UploadDocument = () => {
 
       if (response.ok) {
         setRefresh(!refresh);
-        setTriggerExtraction(true);
+        // setTriggerExtraction(true);
         toast.success("Document added successfully.");
       } else {
         toast.error("Failed to add document.");
