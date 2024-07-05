@@ -333,6 +333,7 @@
 .queue,
 .extraction-progress,
 .extraction-failed,
+.extraction-completed,
 .validation-completed,
 .validation-pending {
   text-align: center;
@@ -351,6 +352,11 @@
 
 .extraction-failed {
   background: #EC2B00; 
+  color: #FFFFFF;
+}
+
+.extraction-completed {
+  background-color: var(--green); 
   color: #FFFFFF;
 }
 

@@ -94,7 +94,7 @@ const UploadDocument = () => {
 
           setTimeout(() => {
             setRefresh((prev) => !prev);
-            if (extractionStatus.status === EXTRACTION_STATUS.VALIDATION_PENDING) {
+            if (extractionStatus.status === EXTRACTION_STATUS.EXTRACTION_COMPLETED) {
               toast.success('Extraction completed');
             } else if (extractionStatus.status === EXTRACTION_STATUS.EXTRACTION_FAILED) {
               toast.error('Extraction failed');
@@ -111,7 +111,7 @@ const UploadDocument = () => {
   }, []);
 
   const handleRowClick = (document) => {
-    if (document.status === EXTRACTION_STATUS.VALIDATION_PENDING || document.status === EXTRACTION_STATUS.VALIDATION_COMPLETED) {
+    if (document.status === EXTRACTION_STATUS.EXTRACTION_COMPLETED || document.status === EXTRACTION_STATUS.VALIDATION_COMPLETED ||  document.status === EXTRACTION_STATUS.VALIDATION_PENDING) {
       history.push(`/extract/${document.id}`);
     } else {
       toast.error("Can't view the extraction details.")
@@ -281,8 +281,9 @@ const UploadDocument = () => {
               <option value={EXTRACTION_STATUS.IN_QUEUE}>{"In Queue"}</option>
               <option value={EXTRACTION_STATUS.EXTRACTION_IN_PROGRESS}>{"Extraction in Progress"}</option>
               <option value={EXTRACTION_STATUS.EXTRACTION_FAILED}>{"Extraction Failed"}</option>
-              <option value={EXTRACTION_STATUS.VALIDATION_COMPLETED}>{"Validation Completed"}</option>
+              <option value={EXTRACTION_STATUS.EXTRACTION_COMPLETED}>{"Extraction Completed"}</option>
               <option value={EXTRACTION_STATUS.VALIDATION_PENDING}>{"Validation Pending"}</option>
+              <option value={EXTRACTION_STATUS.VALIDATION_COMPLETED}>{"Validation Completed"}</option>
             </select>
           </span>
 
@@ -336,7 +337,7 @@ const UploadDocument = () => {
                         {doc.status === EXTRACTION_STATUS.EXTRACTION_IN_PROGRESS && <div className="extraction-progress">{formatDisplayEnumValue(doc.status)}</div>}
                         {doc.status === EXTRACTION_STATUS.EXTRACTION_FAILED && <div className="extraction-failed">{formatDisplayEnumValue(doc.status)}</div>}
                         {doc.status === EXTRACTION_STATUS.VALIDATION_COMPLETED && <div className="validation-completed">{formatDisplayEnumValue(doc.status)}</div>}
-                        {doc.status === EXTRACTION_STATUS.VALIDATION_PENDING && <div className="validation-pending">{formatDisplayEnumValue(doc.status)}</div>}
+                        {doc.status === EXTRACTION_STATUS.EXTRACTION_COMPLETED && <div className="extraction-completed">{formatDisplayEnumValue(doc.status)}</div>}
                         {doc.status === EXTRACTION_STATUS.IN_QUEUE && <div className="queue">{formatDisplayEnumValue(doc.status)}</div>}
                       </div>
                     </td>
