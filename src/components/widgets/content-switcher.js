@@ -167,51 +167,57 @@ const ContentSwitcher = ({ activeTab, tableExtraction, setTableExtraction, keyVa
     return (
       <div className="content-table-container">
         <table className="content-table">
-          <thead>
-            <tr>
-              <th className="content-table-head-sticky"></th>
-              {tableHeaders.map((header, index) => (
-                <th key={index} className="content-table-head-sticky">
-                  <input
-                    type="text"
-                    value={header}
-                    onChange={(event) => handleHeaderChange(event, index)}
-                    className="table-input table-input-bold"
-                  />
-                  <div className="table-icon" onClick={() => addColumn(index)}>
-                    <FeatherIcon className="table-feather-icon" icon="plus" />
-                  </div>
-                  <div className="table-icon" onClick={() => deleteColumn(index)}>
-                    <FeatherIcon className="table-feather-icon" icon="trash" />
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((row, rowIndex) => (
-              <tr key={rowIndex} className="content-table-row">
-                <td className="content-table-data">
-                  <div className="table-icon" onClick={() => addRow(rowIndex)}>
-                    <FeatherIcon className="table-feather-icon" icon="plus" />
-                  </div>
-                  <div className="table-icon" onClick={() => deleteRow(rowIndex)}>
-                    <FeatherIcon className="table-feather-icon" icon="trash" />
-                  </div>
-                </td>
-                {tableHeaders.map((header, cellIndex) => (
-                  <td key={cellIndex} className="content-table-data">
-                    <input
-                      type="text"
-                      value={row[header] || ""}
-                      onChange={(event) => handleTableChange(event, rowIndex, header)}
-                      className="table-input"
-                    />
-                  </td>
+            <thead>
+              <tr>
+                <th className="content-table-head-sticky"></th>
+                {tableHeaders.map((header, index) => (
+                  <th key={index} className="content-table-head-sticky">
+                    <div className="table-header-wrapper">
+                      <input
+                        type="text"
+                        value={header}
+                        onChange={(event) => handleHeaderChange(event, index)}
+                        className="table-input table-input-bold"
+                      />
+                      <div className="add-icon-wrapper">
+                        <div className="table-icon" onClick={() => addColumn(index)} title="Add Right Column">
+                          <FeatherIcon className="table-feather-icon add-icon" icon="plus-circle" />
+                        </div>
+                      </div>
+                      <div className="delete-icon-wrapper">
+                        <div className="table-icon" onClick={() => deleteColumn(index)} title="Delete Column">
+                          <FeatherIcon className="table-feather-icon trash-icon" icon="trash" />
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
+            </thead>
+            <tbody>
+              {tableData.map((row, rowIndex) => (
+                <tr key={rowIndex} className="content-table-row">
+                  <td className="content-table-data">
+                    <div className="row-trash-icon" onClick={() => deleteRow(rowIndex)} title="Delete Row">
+                      <FeatherIcon className="table-feather-delete-icon trash-icon" icon="trash" />
+                    </div>
+                    <div className="row-add-icon" onClick={() => addRow(rowIndex)} title="Add Next Row">
+                      <FeatherIcon className="table-feather-add-icon add-icon" icon="plus-circle" />
+                    </div>
+                  </td>
+                  {tableHeaders.map((header, cellIndex) => (
+                    <td key={cellIndex} className="content-table-data">
+                      <input
+                        type="text"
+                        value={row[header] || ""}
+                        onChange={(event) => handleTableChange(event, rowIndex, header)}
+                        className="table-input"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
         </table>
       </div>
     );

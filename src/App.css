@@ -306,7 +306,7 @@
   position: sticky;
   top: 0;
   background-color: #69b5f3;
-  padding: 8px;
+  padding: 6px;
   border: 1.5px solid #474242;
 }
 
@@ -318,7 +318,7 @@
 
 .content-table-data {
   color: #000 !important;
-  padding: 6px;
+  padding: 4px;
   text-align: center;
   border: 1.5px solid #474242;
 }
@@ -556,7 +556,7 @@ input[type="checkbox"] {
 }
 
 .table-input:hover {
-  border: solid 1px #2e3031 !important;
+  border: solid 1px #1c7cad !important;
   box-shadow: none !important;
 }
 
@@ -609,11 +609,87 @@ input[type="checkbox"] {
   display: inline-block;
   cursor: pointer;
   margin-left: 8px;
+  position: relative;
+}
+
+.row-trash-icon {
+  display: inline-block;
+  cursor: pointer;
+  padding: 20px 10px 5px 10px;
+}
+
+.row-add-icon {
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 30px;
+}
+
+.table-icon:hover .table-feather-icon {
+  transform: scale(1.4);
+  transition: transform 0.2s ease;
+}
+
+.row-trash-icon:hover {
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
+}
+
+.row-add-icon:hover {
+  transform: scale(1.4);
+  transition: transform 0.2s ease;
+}
+
+.trash-icon:hover {
+  color: red;
 }
 
 .table-feather-icon {
+  height: 14px !important;
+  width: 14px !important;
+  transition: transform 0.2s ease;
+}
+
+.table-feather-add-icon {
+  height: 12px !important;
+  width: 12px !important;
+  transition: transform 0.2s ease;
+}
+
+.table-feather-delete-icon {
   height: 18px !important;
   width: 18px !important;
+  transition: transform 0.2s ease;
+}
+
+.table-header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.add-icon-wrapper {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  display: flex;
+  align-items: center;
+}
+
+.delete-icon-wrapper {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  display: flex;
+  align-items: center;
+}
+
+.table-icon .table-feather-icon {
+  margin-left: 5px;
+}
+
+.add-icon:hover {
+  color: green;
 }
 
 .pdf-modal-box-style {
