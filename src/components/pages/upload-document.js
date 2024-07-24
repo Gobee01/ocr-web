@@ -327,7 +327,7 @@ const UploadDocument = () => {
                       <div className="content-wrapper" onClick={(event) => {
                         event.stopPropagation();
                         setShowPreview(true);
-                        setPdfUrl(`http://143.198.186.210/${extractFilePath(doc.pdfPath)}`);
+                        setPdfUrl(`http://143.198.186.210/pdf/${extractFilePath(doc.pdfPath)}`);
                       }}>
                         <FeatherIcon icon="file" className="pdf-icon" />
                       </div>
