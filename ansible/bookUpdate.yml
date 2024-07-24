@@ -1,0 +1,23 @@
+- hosts: "{{ server_name }}"
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ansible-properties.yml
+  vars:
+    - user: senzmate
+    - frontEndApplication: ./../build
+
+  tasks:
+    ########  Copy Front-End application's tar.gz to Remote && un-zip ######################
+    - name: Copy front-end Application to Remote
+      block:
+        - name: copy front-end files  to remote
+          copy:
+            src: "{{frontEndApplication}}"
+            dest: "/home/{{user}}/downloads/genocr"
+
+    ## Restart Nginx after all Process is done####
+    - name: Restart service nginx, in all cases
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

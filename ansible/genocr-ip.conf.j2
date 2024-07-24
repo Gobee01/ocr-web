@@ -1,0 +1,11 @@
+server {
+        server_name {{ server_name }};
+
+        location / {
+           root   /home/senzmate/downloads/genocr/build;
+           index  index.html index.htm;
+           try_files $uri$args $uri$args/ $uri $uri/ /index.html;
+        }
+
+    listen 83;
+}
