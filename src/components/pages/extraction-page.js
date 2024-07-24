@@ -19,6 +19,8 @@ const ExtractionPage = () => {
   const [docData, setDocData] = useState();
   const [tableExtraction, setTableExtraction] = useState({});
   const [keyValues, setKeyValues] = useState({});
+  const [tableExtractionData, setTableExtractionData] = useState({});
+  const [keyValueData, setKeyValueData] = useState({});
   const [extractionId, setExtractionId] = useState("");
   const [keyValueId, setKeyValueId] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
@@ -33,7 +35,7 @@ const ExtractionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setPdfUrl(`http://143.198.186.210/${extractFilePath(data.content.pdfPath)}`)
+        setPdfUrl(`http://143.198.186.210/pdf/${extractFilePath(data.content.pdfPath)}`)
         setDocData(data.content)
       } else {
         toast.error("Failed to fetch data.");
@@ -55,6 +57,7 @@ const ExtractionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
+        setTableExtractionData(data.content || {})
         setTableExtraction(data.content.updatedExtraction || {});
         setExtractionId(data.content.id);
       } else {
@@ -77,6 +80,7 @@ const ExtractionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
+        setKeyValueData(data.content || {});
         setKeyValues(data.content.updatedKeyValueExtraction || {});
         setKeyValueId(data.content.id)
       } else {
@@ -121,7 +125,7 @@ const ExtractionPage = () => {
 
   const handleDocumentNameChange = (event) => {
     const newName = event.target.value;
-    setKeyValues(prevData => ({ ...prevData, documentName: newName }));
+    setKeyValueData(prevData => ({ ...prevData, documentName: newName }));
   };
 
   useEffect(() => {
@@ -147,6 +151,7 @@ const ExtractionPage = () => {
   };
 
   const saveKeyValues = async () => {
+    setKeyValueData(prevData => ({ ...prevData, updatedKeyValueExtraction: keyValues }));
     delete keyValues.id;
 
     try {
@@ -155,7 +160,7 @@ const ExtractionPage = () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(keyValues)
+        body: JSON.stringify(keyValueData)
       });
 
       if (!response.ok) {
@@ -168,6 +173,7 @@ const ExtractionPage = () => {
   };
 
   const saveTableExtraction = async () => {
+    setTableExtractionData(prevData => ({ ...prevData, updatedExtraction: tableExtraction }));
     delete tableExtraction.id;
     
     try {
@@ -176,7 +182,7 @@ const ExtractionPage = () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(tableExtraction)
+        body: JSON.stringify(tableExtractionData)
       });
 
       if (!response.ok) {
@@ -308,7 +314,7 @@ const ExtractionPage = () => {
                   type="text" 
                   className="form-control" 
                   name="documentName" 
-                  value={keyValues?.documentName || ''} 
+                  value={keyValueData?.documentName || ''} 
                 />
               </div>
             </div>

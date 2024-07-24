@@ -7,5 +7,10 @@ server {
            try_files $uri$args $uri$args/ $uri $uri/ /index.html;
         }
 
-    listen 81;
+        location /pdf/ {
+            alias /home/ocr/data/;
+            autoindex on;
+        }
+
+    listen 80;
 }

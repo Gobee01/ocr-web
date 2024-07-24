@@ -790,6 +790,49 @@ button {
   height: 16px;
 }
 
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.error-container p {
+  margin-bottom: 1rem;
+}
+
+.error-container pre {
+  background-color: #f7f7f7;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  max-width: 80%;
+  overflow: auto;
+}
+
+.error-container button {
+  background-color: #22C687;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.error-image {
+  text-align: center;
+  margin-bottom: 22px;
+  width: 256px;
+  height: 256px;
+}
+
+.dashboard-card-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  color: #374151;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
