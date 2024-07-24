@@ -142,12 +142,7 @@
             src: "{{ nginxAPPConfLocal }}"
             dest: /etc/nginx/sites-enabled/genocr-ip.conf
           notify: Reload Nginx
-  handlers:
-    - name: Reload Nginx
-      systemd:
-        name: nginx
-        state: reloaded
-
+  
     #### Copy Front-End Application and Restart Nginx ######
     - name: Copy front-end Application to Remote
       block:
@@ -167,6 +162,11 @@
         name: nginx
         state: restarted
 
+  handlers:
+    - name: Reload Nginx
+      systemd:
+        name: nginx
+        state: reloaded
 
     # - name: Install Nginx, Copy configuration from local machine and Obtain SSL
     #   block:
