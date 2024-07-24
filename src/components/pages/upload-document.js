@@ -197,7 +197,7 @@ const UploadDocument = () => {
   const uploadFile = async (formData) => {
     dispatch(toggleLoader(true));
     try {
-      const response = await fetch(`${process.env.REACT_APP_HOST}/api/uploadVM`, {
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/upload`, {
         method: "POST",
         body: formData,
       });
