@@ -7,7 +7,7 @@ server {
            try_files $uri$args $uri$args/ $uri $uri/ /index.html;
         }
 
-        location /pdf/ {
+        location /data/ {
             alias /home/ocr/data/;
             autoindex on;
         }
