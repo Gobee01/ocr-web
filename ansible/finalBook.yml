@@ -1,0 +1,250 @@
+- hosts: "{{ server_name }}"
+  become: yes
+  gather_facts: false
+  vars_files:
+    - ansible-properties.yml
+  vars:
+    - user: senzmate
+    - pwd: senzmate
+    - nginxConfLocal: ./nginx.conf
+    - nginxAPPConfLocal: ./genocr-ip.conf.j2
+    - frontEndApplication: ./../build
+  tasks:
+    #### Create user with root access ######
+    - name: Create a New user and copy public key to remote host [It's Takes public key of the local host that runs playbook]
+      block:
+        - name: Create a user with root permisions
+          user:
+            name: "{{ user }}"
+            password: "{{ pwd | password_hash('sha512') }}"
+            groups:
+              - sudo
+            state: present
+
+        - name: Add public key to authorized_keys
+          authorized_key:
+            user: "{{ user }}"
+            state: present
+            key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+        - name: Alter /home/user folder permison to 755 or rwxr-xr-x
+          file:
+            path: "/home/{{user}}"
+            state: directory
+            owner: "{{user}}"
+            mode: '0755'
+    ########  Create Download folder to hold Rpm files and JARs######################
+    - name: Create Download Folder inside user home directory with 755
+      file:
+        path: "/home/{{user}}/downloads"
+        state: directory
+        owner: "{{user}}"
+        mode: '0755'
+    ######### Install and Configure firewalld #####################
+    - name: Install Firewall and configure zone and ports
+      block:
+        # - name: Install firewall if it does not installed
+        #   apt:
+        #     name: firewalld
+        #     state: present
+
+        # - name: make sure firewalld is started
+        #   ansible.builtin.service: name=firewalld state=started enabled=yes
+
+        - name: Install UFW
+          apt:
+            name: ufw
+            state: present
+            update_cache: yes
+        
+        - name: Allow HTTPS traffic
+          ufw:
+            rule: allow
+            port: '443'
+            proto: tcp
+
+        - name: Allow HTTP traffic
+          ufw:
+            rule: allow
+            port: '81'
+            proto: tcp
+
+        - name: Allow traffic on port 3005
+          ufw:
+            rule: allow
+            port: '3005'
+            proto: tcp
+
+        - name: Enable UFW
+          ufw:
+            state: enabled
+
+        # - name: permit traffic in default-zone(Public) for https service
+        #   ufw:
+        #     service: https
+        #     permanent: yes
+        #     state: enabled
+        #     zone: public
+
+        # - name: permit traffic in default-zone(Public) for http service
+        #   firewalld:
+        #     service: http
+        #     permanent: yes
+        #     state: enabled
+
+        # - name: FirewallD port rules
+        #   firewalld:
+        #     permanent: yes
+        #     immediate: yes
+        #     port: "{{item.port}}/{{item.proto}}"
+        #     state: "{{item.state}}"
+        #     zone: "{{item.zone}}"
+        #   with_items:
+        #     - { port: "80", proto: "tcp", state: "enabled", zone: "public" }
+        #     - { port: "443", proto: "tcp", state: "enabled", zone: "public" }
+        #     - { port: "3005", proto: "tcp", state: "enabled", zone: "public" }
+
+        # - name: reload service firewall
+        #   systemd:
+        #     name: firewalld
+        #     state: reloaded
+    ######### install nginx and Obtain SSL #####################
+    - name: Install Nginx, Copy configuration from local machine and Obtain SSL
+      block:
+        - name: Update and install required packages
+          apt:
+            update_cache: yes
+            name:
+              - nginx
+              - certbot
+              - python3-certbot-nginx
+            state: present
+
+        - name: Ensure Nginx is started and enabled
+          systemd:
+            name: nginx
+            state: started
+            enabled: yes
+
+        - name: Copy local Nginx configuration file
+          copy:
+            src: "{{ nginxConfLocal }}"
+            dest: /etc/nginx/nginx.conf
+          notify: Reload Nginx
+
+        - name: Create sites-enabled directory to hold nginx-ip-conf files
+          file:
+            path: /etc/nginx/sites-enabled
+            state: directory
+
+        - name: Copy app Nginx Config File
+          template:
+            src: "{{ nginxAPPConfLocal }}"
+            dest: /etc/nginx/sites-enabled/genocr-ip.conf
+          notify: Reload Nginx
+  
+    #### Copy Front-End Application and Restart Nginx ######
+    - name: Copy front-end Application to Remote
+      block:
+        - name: Create a folder for genocr
+          file:
+            path: "/home/{{user}}/downloads/genocr"
+            state: directory
+
+        - name: Copy front-end files to remote
+          copy:
+            src: "{{ frontEndApplication }}"
+            dest: "/home/{{user}}/downloads/genocr"
+
+    ## Restart Nginx after all Process is done####
+    - name: Restart service nginx, in all cases
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+  handlers:
+    - name: Reload Nginx
+      systemd:
+        name: nginx
+        state: reloaded
+
+    # - name: Install Nginx, Copy configuration from local machine and Obtain SSL
+    #   block:
+    #     - name: Adding the EPEL Software Repository
+    #       apt:
+    #         name: epel-release
+    #         state: present
+    #       when: true
+
+    #     - name: Installing Nginx if does not Installed
+    #       apt:
+    #         name: nginx
+    #         state: present
+
+    #     - name: make sure nginx is started
+    #       service: name=nginx state=started enabled=yes
+
+    #     - name: Installing the Certbot Lets Encrypt Client
+    #       apt:
+    #         name: certbot-nginx
+    #         state: present
+
+
+    #     - name: Check if SELinux policy for port 3005 is already defined
+    #       shell: semanage port -l | grep "http_port_t.*tcp.*3005"
+    #       register: selinux_policy
+    #       changed_when: false
+    #       failed_when: false
+    #       ignore_errors: true
+
+    #     - name: Add SELinux policy for Nginx to bind to port 3005
+    #       shell: semanage port -a -t http_port_t -p tcp 3005
+    #       become: yes
+    #       when: selinux_policy.rc != 0
+
+
+    #     - name: allow Nginx to read files labeled with the user_home_t
+    #       shell: "sudo setsebool -P httpd_read_user_content 1"
+
+    #     - name: Edit Nginx Config to Support Java Application
+    #       ## copy local file that contains Configuration
+    #       copy:
+    #         src: "{{nginxConfLocal}}"
+    #         dest: /etc/nginx
+
+    #     ########  Create a folder  ######################
+    #     - name: Create sites-enabled directory to hold nginx-ip-conf files
+    #       file:
+    #         path: /etc/nginx/sites-enabled
+    #         state: directory
+
+    #     - name: Copy app Nginx Config File
+    #       ## copy local file that contains Configuration
+    #       template:
+    #         src: "{{ nginxAPPConfLocal }}"
+    #         dest: /etc/nginx/sites-enabled/genocr-ip.conf
+    #
+    #          # To Obtain SSL
+    #        - name: Create and Install Cert Using Nginx Plugin
+    #          command: "certbot --nginx -d  {{domain}} -d {{domain}} -m {{certbot_mail_address}} --agree-tos --noninteractive --redirect"
+    #          when: "{{ https }}"
+
+
+    ########  Copy Front-End application's tar.gz to Remote && un-zip ######################
+    # - name: Copy front-end Application to Remote
+    #   block:
+    #     - name: Create a folder for genocr
+    #       file:
+    #         path: "/home/{{user}}/downloads/genocr"
+    #         state: directory
+
+    #     - name: copy front-end files to remote
+    #       copy:
+    #         src: "{{frontEndApplication}}"
+    #         dest: "/home/{{user}}/downloads/genocr"
+
+    # ## Restart Nginx after all Process is done####
+    # - name: Restart service nginx, in all cases
+    #   ansible.builtin.service:
+    #     name: nginx
+    #     state: restarted

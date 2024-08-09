@@ -1,0 +1,16 @@
+server {
+        server_name {{ server_name }};
+
+        location / {
+           root   /home/senzmate/downloads/genocr/build;
+           index  index.html index.htm;
+           try_files $uri$args $uri$args/ $uri $uri/ /index.html;
+        }
+
+        location /data/ {
+            alias /home/ocr/data/;
+            autoindex on;
+        }
+
+    listen 81;
+}

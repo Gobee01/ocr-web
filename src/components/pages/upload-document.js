@@ -197,7 +197,7 @@ const UploadDocument = () => {
   const uploadFile = async (formData) => {
     dispatch(toggleLoader(true));
     try {
-      const response = await fetch(`${process.env.REACT_APP_HOST}/api/uploadVM`, {
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/upload`, {
         method: "POST",
         body: formData,
       });
@@ -327,7 +327,7 @@ const UploadDocument = () => {
                       <div className="content-wrapper" onClick={(event) => {
                         event.stopPropagation();
                         setShowPreview(true);
-                        setPdfUrl(`http://134.209.231.0/${extractFilePath(doc.pdfPath)}`);
+                        setPdfUrl(`http://143.198.186.210:81/${extractFilePath(doc.pdfPath)}`);
                       }}>
                         <FeatherIcon icon="file" className="pdf-icon" />
                       </div>

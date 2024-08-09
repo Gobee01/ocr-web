@@ -17,10 +17,12 @@ const ExtractionPage = () => {
   const [activeTab, setActiveTab] = useState('keyValues');
   const [pdfUrl, setPdfUrl] = useState("");
   const [docData, setDocData] = useState();
-  const [extractionData, setExtractionData] = useState();
   const [tableExtraction, setTableExtraction] = useState({});
   const [keyValues, setKeyValues] = useState({});
+  const [tableExtractionData, setTableExtractionData] = useState({});
+  const [keyValueData, setKeyValueData] = useState({});
   const [extractionId, setExtractionId] = useState("");
+  const [keyValueId, setKeyValueId] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
   const [numPages, setNumPages] = useState(1);
 
@@ -33,7 +35,7 @@ const ExtractionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setPdfUrl(`http://134.209.231.0/${extractFilePath(data.content.pdfPath)}`)
+        setPdfUrl(`http://143.198.186.210:81/${extractFilePath(data.content.pdfPath)}`)
         setDocData(data.content)
       } else {
         toast.error("Failed to fetch data.");
@@ -46,11 +48,7 @@ const ExtractionPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDocument();
-  }, [documentId]);
-
-  const fetchExtraction = async () => {
+  const fetchTableExtraction = async () => {
     dispatch(toggleLoader(true));
     try {
       const response = await fetch(`${process.env.REACT_APP_HOST}/api/extraction/${docData.documentId}`, {
@@ -59,11 +57,9 @@ const ExtractionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setExtractionData(data.content);
-        setTableExtraction(data.content.tableExtraction || {});
-        setKeyValues(data.content.keyValues || {});
-        calculateNumPages(data.content.tableExtraction, data.content.keyValues);
-        setExtractionId(data.content.id)
+        setTableExtractionData(data.content || {})
+        setTableExtraction(data.content.updatedExtraction || {});
+        setExtractionId(data.content.id);
       } else {
         toast.error("Failed to fetch extraction data.");
       }
@@ -75,12 +71,38 @@ const ExtractionPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (!docData) {
-      return
-    }
+  const fetchKeyValues = async () => {
+    dispatch(toggleLoader(true));
+    try {
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/keyValue/${docData.documentId}`, {
+        method: "GET",
+      });
 
-    fetchExtraction();
+      if (response.ok) {
+        const data = await response.json();
+        setKeyValueData(data.content || {});
+        setKeyValues(data.content.updatedKeyValueExtraction || {});
+        setKeyValueId(data.content.id)
+      } else {
+        toast.error("Failed to fetch key values data.");
+      }
+    } catch (error) {
+      console.error("Error fetching key values data:", error);
+      toast.error("Error fetching key values data.");
+    } finally {
+      dispatch(toggleLoader(false));
+    }
+  };
+
+  useEffect(() => {
+    fetchDocument();
+  }, [documentId]);
+
+  useEffect(() => {
+    if (docData) {
+      fetchTableExtraction();
+      fetchKeyValues();
+    }
   }, [docData]);
 
   const calculateNumPages = (tableExtraction, keyValues) => {
@@ -89,7 +111,7 @@ const ExtractionPage = () => {
     const keyPages = keyValues && Object.keys(keyValues).length > 0 ? getPageNumbers(keyValues) : [];
     
     const allPages = [...tablePages, ...keyPages];
-    const maxPage = allPages.length > 0 ? Math.max(...allPages) : 1; // Default to 1 if no pages found
+    const maxPage = allPages.length > 0 ? Math.max(...allPages) : 1;
     setNumPages(maxPage);
   
     if (selectedPage > maxPage) {
@@ -103,25 +125,56 @@ const ExtractionPage = () => {
 
   const handleDocumentNameChange = (event) => {
     const newName = event.target.value;
-    setExtractionData(prevData => ({ ...prevData, documentName: newName }));
+    setKeyValueData(prevData => ({ ...prevData, documentName: newName }));
   };
 
   useEffect(() => {
     if (!keyValues && !tableExtraction) {
-      return
+      return;
     }
 
-    // Update extractionData whenever keyValues or tableExtraction change
-    setExtractionData(prevData => ({
-      ...prevData,
-      keyValues,
-      tableExtraction,
-    }));
+    calculateNumPages(tableExtraction, keyValues)
   }, [keyValues, tableExtraction]);
 
   const handleSave = async () => {
     dispatch(toggleLoader(true));
-    delete extractionData.id
+    try {
+      await saveKeyValues();
+      await saveTableExtraction();
+      toast.success("Data saved successfully.");
+    } catch (error) {
+      console.error("Error saving data:", error);
+      toast.error("Error saving data.");
+    } finally {
+      dispatch(toggleLoader(false));
+    }
+  };
+
+  const saveKeyValues = async () => {
+    setKeyValueData(prevData => ({ ...prevData, updatedKeyValueExtraction: keyValues }));
+    delete keyValues.id;
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_HOST}/api/keyValue/${keyValueId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(keyValueData)
+      });
+
+      if (!response.ok) {
+        toast.error("Failed to save key values.");
+      }
+    } catch (error) {
+      console.error("Error saving key values:", error);
+      throw error;
+    }
+  };
+
+  const saveTableExtraction = async () => {
+    setTableExtractionData(prevData => ({ ...prevData, updatedExtraction: tableExtraction }));
+    delete tableExtraction.id;
     
     try {
       const response = await fetch(`${process.env.REACT_APP_HOST}/api/extraction/${extractionId}`, {
@@ -129,26 +182,20 @@ const ExtractionPage = () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(extractionData)
+        body: JSON.stringify(tableExtractionData)
       });
 
-      if (response.ok) {
-        toast.success("Data saved successfully.");
-      } else {
-        toast.error("Failed to save data.");
+      if (!response.ok) {
+        toast.error("Failed to save table extraction.");
       }
     } catch (error) {
-      console.error("Error saving extraction data:", error);
-      toast.error("Error saving extraction data.");
-    } finally {
-      dispatch(toggleLoader(false));
+      console.error("Error saving table extraction:", error);
+      throw error;
     }
   };
 
   const handleExport = (event) => {
     const format = event.target.value;
-    // Implement export logic based on format (csv/json)
-    // You can use libraries like FileSaver.js to save files
     switch (format) {
       case 'csv_key_values':
         exportAsCSV(keyValues, 'key_values.csv');
@@ -168,14 +215,12 @@ const ExtractionPage = () => {
   };
 
   const exportAsCSV = (data, fileName) => {
-    // Sample implementation using Blob and FileSaver.js for CSV export
     const csvData = (fileName === 'key_values.csv') ? convertKeysToCSV(data) : convertTableToCSV(data);
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, fileName);
   };
 
   const exportAsJSON = (data, fileName) => {
-    // Sample implementation using Blob and FileSaver.js for JSON export
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     saveAs(blob, fileName);
@@ -184,44 +229,31 @@ const ExtractionPage = () => {
   const convertTableToCSV = (data) => {
     let csv = '';
 
-    // Iterate over each page in the data
     Object.keys(data).forEach(page => {
       const pageName = `Page ${page.replace('page_', '')}`;
       const tables = data[page];
 
-      // Iterate over each table in the page
       Object.keys(tables).forEach(tableName => {
         const tableData = tables[tableName];
-
-        // Add table name as row in CSV
         csv += `${pageName}\n${tableName}\n`;
 
-        // Determine columns from first object's keys
         const columns = Object.keys(tableData[0]);
-
-        // Create header row with column names
         csv += `${columns.join(',')}\n`;
 
-        // Iterate over each object in the table data
         tableData.forEach(row => {
-          // Create array of values based on columns order
           const values = columns.map(column => {
             let value = row[column];
             if (typeof value === 'string' && value.includes(',')) {
-              value = `"${value}"`; // Quote values containing commas
+              value = `"${value}"`;
             }
             return value;
           });
-
-          // Join values into CSV row
           csv += `${values.join(',')}\n`;
         });
 
-        // Add a blank line after each table
         csv += '\n';
       });
 
-      // Add a blank line after each page
       csv += '\n';
     });
 
@@ -231,15 +263,12 @@ const ExtractionPage = () => {
   const convertKeysToCSV = (data) => {
     let csv = '';
 
-    // Iterate over each page in the data
     Object.keys(data).forEach(page => {
       csv += `Page ${page.replace('page_', '')}\n`;
-  
-      // Iterate over each array of key-value pairs in the page
+
       data[page].forEach(pair => {
         const quotedPair = pair.map(value => {
           if (typeof value === 'string' && value.includes(',')) {
-            // Quote the value if it contains commas
             return `"${value}"`;
           }
           return value;
@@ -247,15 +276,13 @@ const ExtractionPage = () => {
         csv += `${quotedPair.join(',')}\n`;
       });
   
-      // Add a blank line after each page
       csv += '\n';
     });
-  
+
     return csv;
   };
 
   const saveAs = (blob, fileName) => {
-    // Using FileSaver.js to save blob as file
     const { saveAs } = require('file-saver');
     saveAs(blob, fileName);
   };
@@ -287,7 +314,7 @@ const ExtractionPage = () => {
                   type="text" 
                   className="form-control" 
                   name="documentName" 
-                  value={extractionData?.documentName || ''} 
+                  value={keyValueData?.documentName || ''} 
                 />
               </div>
             </div>
